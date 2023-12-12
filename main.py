@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 
 def scrape_craigslist(url, max_price, max_miles, desired_features):
+    print(f"Scraping: {url}")
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
 
