@@ -1,13 +1,41 @@
 from bs4 import BeautifulSoup
 import requests
 
+# Define the craigslist URL
+base_url = "https://www.craigslist.org/search/cto?query=porsche+911&sort=priceasc&searchNearby=1"
+
+# Define the desired locations
+locations = ["mnh", "losangeles", "nyc", "miami"]
+
+# Define the filters
+max_price = 100000
+max_miles = 100000
+desired_features = ["manual transmission"]
+
+def scrape_craigslist_with_pagination(base_url, location, query_params, max_price, max_miles, desired_features):
+    page_number = 0
+    while True:
+        page_number += 1
+        url = f"{base_url}?{('&'.join([f'{key}={value}' for key, value in query_params.items()]))}&s={page_number * 120}"
+        listings_found = scrape_craigslist(url, max_price, max_miles, desired_features)
+
+        # Break the loop if no more listings are found on the page
+        if not listings_found:
+            break
+
 def scrape_craigslist(url, max_price, max_miles, desired_features):
     print(f"Scraping: {url}")
     response = requests.get(url)
+    print(f"Response Status Code: {response.status_code}")
+
     soup = BeautifulSoup(response.content, "html.parser")
 
     # Find all the Porsche 911 listings
     listings = soup.find_all("li", class_="result-row")
+    
+    if not listings:
+        print("No listings found on the page.")
+        return
 
     # Filter and extract data for each listing
     for listing in listings:
@@ -38,17 +66,6 @@ def scrape_craigslist(url, max_price, max_miles, desired_features):
                     print(f"Image URL: {image_url}")
                     print("-" * 20)
 
-# Define the craigslist URL
-base_url = "https://www.craigslist.org/search/cto?query=porsche+911&sort=priceasc&searchNearby=1"
-
-# Define the desired locations
-locations = ["losangeles", "nyc", "miami"]
-
-# Define the filters
-max_price = 60000
-max_miles = 100000
-desired_features = ["manual transmission"]
-
 # Iterate through each location
 for location in locations:
     # Build the complete URL
@@ -56,3 +73,5 @@ for location in locations:
   
     # Scrape and process listings
     scrape_craigslist(url, max_price, max_miles, desired_features)
+    
+    scrape_craigslist_with_pagination(base_url, location, max_price, max_miles, desired_features)
